@@ -114,13 +114,16 @@ public class CLI {
     }
 
     private boolean canRotate() {
+        currentShape = currentShape.rotateRight();
         for (int i = 0; i < 4; i++) {
             int newX = currentX + currentShape.x(i);
             int newY = currentY + currentShape.y(i);
             if (!tryMove(newX, newY, currentShape)) {
+                currentShape = currentShape.rotateLeft();
                 return false;
             }
         }
+        currentShape = currentShape.rotateLeft();
         return true;
     }
     private void initBoard() {
@@ -237,6 +240,7 @@ public class CLI {
         }
         return false;
     }
+
     private boolean sumEvenForColumn(int column) {
         int sum = 0;
         int count = 0;
