@@ -2,7 +2,6 @@ package fsktm.fop;
 
 import fsktm.fop.Shape.Tetrominoe;
 
-import javax.print.DocFlavor;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -23,6 +22,7 @@ public class CLI {
     private Tetrominoe[] previewBoard = new Tetrominoe[previewHeight * previewWidth];
     private int[] previewNumbers = new int[previewHeight * previewWidth];
     private static ArrayList<Shape> previewShape = new ArrayList<Shape>(4);
+    private int[] currentNumbers = new int[4];
 
     private static Shape currentShape, shape1;
     private int currentX, currentY;
@@ -32,12 +32,9 @@ public class CLI {
         initBoard();
         initPreviewBoard();
 
-        /*
-        TODO ArrayList of Shape class
-         */
-        currentX = width / 2 - 1;
+        currentX = width / 2 - 1; // start from the middle
         currentY =  height / 2 - 1;
-        putShadowShapeOnBoard(currentX ,currentY, currentShape);
+        putShadowShapeOnBoard(currentX ,currentY, currentShape, currentShape.getShape(), -2);
 
         printBoard();
         printBlockPreviews();
@@ -70,11 +67,11 @@ public class CLI {
                 }
             } else if (input.equals("r")) {
                 if (canRotate()) {
-                    removeShadowShapeOnBoard(currentX, currentY, currentShape);
+                    putShadowShapeOnBoard(currentX, currentY, currentShape, Tetrominoe.NoShape, -1); // remove
                     currentShape = currentShape.rotateRight();
                     previewShape.set(0, currentShape);
                     retainNumber();
-                    putShadowShapeOnBoard(currentX, currentY, currentShape);
+                    putShadowShapeOnBoard(currentX, currentY, currentShape, currentShape.getShape(), -2); // add
                 }
             } else if (input.equals("i")) {
                 insert();
@@ -96,12 +93,6 @@ public class CLI {
             currentShape.setNumber(i, shape1.getNumberAt(i));
         }
     }
-    private void check() {
-        for (int i = 0;i < 4; i++) {
-            System.out.printf("%d ", previewShape.get(0).getNumberAt(i));
-        }
-        System.out.println();
-    }
 
     private void checkForColumnAndRow() {
         /*
@@ -109,13 +100,13 @@ public class CLI {
         boolean rowEven = false, columnEven = false;
         */
         for (int i = 0; i < width; i++) {
-            if (sumIsEvenForRow(i)) {
+            if (sumEvenForRow(i)) {
                 clearRow(i);
                 System.out.println("Row " + (i+1) + " cleared!");
             }
         }
         for (int i = 0; i < height; i++) {
-            if (sumIsEvenForColumn(i)) {
+            if (sumEvenForColumn(i)) {
                 clearColumn(i);
                 System.out.println("Column " + (i+1) + " cleared!");
             }
@@ -145,8 +136,45 @@ public class CLI {
             previewShape.add(generateRandomShape());
         }
         updatePreviewBoard(); // <- Redundant (TODO)
-        shape1 = previewShape.get(0);
         currentShape = previewShape.get(0);
+        shape1 = currentShape;
+    }
+
+    private Tetrominoe shapeAt(int x, int y) {
+        return board[(y * width) + x];
+    }
+
+    private int numberAt(int x, int y) {
+        return numbers[(y * width) + x];
+    }
+
+    private void setShapeAt(int x, int y, Tetrominoe tetrominoe) {
+        board[(y * width) + x] = tetrominoe;
+    }
+    private void setNumberAt(int x, int y, int value) {
+        numbers[(y * width) + x] = value;
+    }
+
+    private Tetrominoe previewShapeAt(int x, int y) {
+        return previewBoard[(y * width) + x];
+    }
+
+    private int previewNumberAt(int x, int y) {
+        return previewNumbers[(y * width) + x];
+    }
+
+    private void setPreviewShapeAt(int x, int y, Tetrominoe tetrominoe) {
+        previewBoard[(y * previewWidth) + x] = tetrominoe;
+    }
+    private void setPreviewNumberAt(int x, int y, int value) {
+        previewNumbers[(y * previewWidth) + x] = value;
+    }
+
+    private Shape generateRandomShape() {
+        var shape = new Shape();
+        shape.setRandomShape();
+        shape.setRandomNumber();
+        return shape;
     }
 
     private void clearPreviewBoard() {
@@ -168,10 +196,10 @@ public class CLI {
         previewShape.remove(0);
         previewShape.add(generateRandomShape());
         currentShape = previewShape.get(0);
-        shape1 = previewShape.get(0);
+        shape1 = currentShape;
 
         if (blocksIsAvailable()) {
-            putShadowShapeOnBoard(currentX, currentY, currentShape);
+            putShadowShapeOnBoard(currentX, currentY, currentShape, currentShape.getShape(), -2);
         }
         updatePreviewBoard();
     }
@@ -195,46 +223,47 @@ public class CLI {
     /*
     TODO - Total count of vertical and horizontal columns
      */
-    private boolean sumIsEvenForRow(int row) {
-        int sumHorizontal = 0;
+    private boolean sumEvenForRow(int row) {
+        int sum = 0;
         int count = 0;
         for (int j = 0; j < width; j++) {
-            if (board[(row * width) + j] != Tetrominoe.NoShape && numbers[(row * width) + j] >= 0) {
-                sumHorizontal += numbers[(row * width) + j];
+            if (shapeAt(j, row) != Tetrominoe.NoShape && numberAt(j, row) >= 0) {
+                sum += numberAt(j, row);
                 count++;
             }
         }
-        if ((sumHorizontal % 2 == 0) && (count == width)) {
+        if ((sum % 2 == 0) && (count == width)) {
             return true;
         }
         return false;
     }
-    private boolean sumIsEvenForColumn(int column) {
-        int sumVertical = 0;
+    private boolean sumEvenForColumn(int column) {
+        int sum = 0;
         int count = 0;
-        for (int j = 0; j < width; j++) {
+        for (int j = 0; j < height; j++) {
             if (board[(j * height) + column] != Tetrominoe.NoShape && numbers[(j * height) + column] >= 0) {
-                sumVertical += numbers[(j * height) + column];
+                sum += numbers[(j * height) + column];
                 count++;
             }
         }
-        if (sumVertical % 2 == 0 && count == height) {
+        if (sum % 2 == 0 && count == height) {
             return true;
         }
         return false;
     }
 
+
     private void clearRow(int index) {
         for (int i = 0; i < width; i++) {
-            board[(index * width) + i] = Tetrominoe.NoShape;
-            numbers[(index * width) + i] = -1;
+            setShapeAt(i, index, Tetrominoe.NoShape);
+            setNumberAt(i, index, -1);
         }
     }
 
     private void clearColumn(int index) {
         for (int i = 0; i < height; i++) {
-            board[(i * height) + index] = Tetrominoe.NoShape;
-            numbers[(i * height) + index] = -1;
+            setShapeAt(index, i, Tetrominoe.NoShape);
+            setNumberAt(index, i, -1);
         }
     }
 
@@ -242,26 +271,17 @@ public class CLI {
         for (int i = 0; i < 4; i++) {
             int x = a + shape.x(i);
             int y = b + shape.y(i);
-            board[(y * width) + x] = shape.getShape();
-            numbers[(y * width) + x] = shape.getNumberAt(i);
+            setShapeAt(x, y, shape.getShape());
+            setNumberAt(x, y, shape.getNumberAt(i));
         }
     }
 
-    private void putShadowShapeOnBoard(int a, int b, Shape newShape) {
+    private void putShadowShapeOnBoard(int a, int b, Shape newShape, Tetrominoe tetrominoe, int value) {
         for (int i = 0; i < 4; i++) {
             int x = a + newShape.x(i);
             int y = b + newShape.y(i);
-            board[(y * width) + x] = newShape.getShape();
-            numbers[(y * width) + x] = -2; //-2 as a value for shadow
-        }
-    }
-
-    private void removeShadowShapeOnBoard(int a, int b, Shape oldShape) {
-        for (int i = 0; i < 4; i++) {
-            int x = a + oldShape.x(i);
-            int y = b + oldShape.y(i);
-            board[(y * width) + x] = Tetrominoe.NoShape;
-            numbers[(y * width) + x] = -1; // -1 to indicate its nothing
+            setShapeAt(x, y, tetrominoe);
+            setNumberAt(x, y, value); //-1 to indicate its nothing, -2 as a value for shadow
         }
     }
 
@@ -294,30 +314,15 @@ public class CLI {
         for (int i = 0; i < 4; i++) {
             int oldX = currentX + shape.x(i);
             int oldY = currentY + shape.y(i);
-            board[(oldY * width) + oldX] = Tetrominoe.NoShape;
-            numbers[(oldY * width) + oldX] = -2; //can only move shadow
+            setShapeAt(oldX, oldY, Tetrominoe.NoShape);
+            setNumberAt(oldX, oldY, -2);
         }
         for (int i = 0; i < 4; i++) {
             int x = newX + shape.x(i);
             int y = newY + shape.y(i);
-            board[(y * width) + x] = tetrominoe;
-            numbers[(y * width) + x] = -2; //can only move shadow
+            setShapeAt(x, y, tetrominoe);
+            setNumberAt(x, y, -2); //can only move shadow
         }
-    }
-
-    private Tetrominoe shapeAt(int x, int y) {
-        return board[(y * width) + x];
-    }
-
-    private int numberAt(int x, int y) {
-        return numbers[(y * width) + x];
-    }
-
-    private Shape generateRandomShape() {
-        var shape = new Shape();
-        shape.setRandomShape();
-        shape.setRandomNumber();
-        return shape;
     }
 
     private void printBoard() {
@@ -326,9 +331,9 @@ public class CLI {
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
                 if (j == 0) System.out.printf("/ "); //border stuff
-                if (board[(i * width) + j] != Tetrominoe.NoShape && numbers[(i * width) + j] >= 0) {
+                if (shapeAt(j, i) != Tetrominoe.NoShape && numberAt(j, i) >= 0) {
                     System.out.printf(" %d ", numbers[(i * width) + j]); //The number
-                } else if (board[(i * width) + j] != Tetrominoe.NoShape && numbers[(i * width) + j] == -2) {
+                } else if (shapeAt(j, i) != Tetrominoe.NoShape && numberAt(j, i) == -2) {
                     System.out.printf(" + "); // Shadow
                 } else {
                     System.out.printf("   ");
@@ -345,16 +350,16 @@ public class CLI {
         for (int i = 0; i < 4; i++) {
             int x = a + newShape.x(i);
             int y = b + newShape.y(i);
-            previewBoard[(y * previewWidth) + x] = newShape.getShape();
-            previewNumbers[(y * previewWidth) + x] = newShape.getNumberAt(i);
+            setPreviewShapeAt(x, y, newShape.getShape());
+            setPreviewNumberAt(x, y, newShape.getNumberAt(i));
         }
     }
 
     private void printBlockPreviews() {
         for (int i = 0; i < previewHeight; i++) { // for the height of 4
             for (int j = 0; j < previewWidth; j++) { // for the width of 10
-                if ((previewBoard[(i * previewWidth) + j] != Tetrominoe.NoShape) && (previewNumbers[(i * previewWidth) + j] != -1)) {
-                    System.out.printf(" %d ", previewNumbers[(i * previewWidth) + j]);
+                if (previewShapeAt(j, i) != Tetrominoe.NoShape && previewNumberAt(j, i) != -1) {
+                    System.out.printf(" %d ", previewNumberAt(j, i));
                 } else {
                     System.out.printf("   ");
                 }
