@@ -2,8 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="cd24aac0-ae70-4fbb-b4e5-b5775a296bc9" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/fsktm/fop/Main.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/fsktm/fop/Board.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/fsktm/fop/CLI.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/fsktm/fop/Cycle.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/fsktm/fop/Shape.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/fsktm/fop/Tetris.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Tetris2.0/fsktm/fop/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Tetris2.0/fsktm/fop/Main.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/fsktm/fop/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/fsktm/fop/Main.java" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -23,6 +29,7 @@
   </component>
   <component name="ProjectId" id="1SwpZFZTquTGmX82eUZRbiGV7kD" />
   <component name="PropertiesComponent">
+    <property name="last_directory_selection" value="$PROJECT_DIR$/src/fsktm/fop" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="project.structure.last.edited" value="Modules" />
     <property name="project.structure.proportion" value="0.15" />
@@ -41,9 +48,10 @@
     </option>
   </component>
   <component name="RunManager">
-    <configuration name="Unnamed" type="Application" factoryName="Application" nameIsGenerated="true">
+    <configuration name="Main" type="Application" factoryName="Application" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="fsktm.fop.Main" />
       <module name="Tetris2.0" />
+      <option name="VM_PARAMETERS" value="--module-path $USER_HOME$/Downloads/javafx-sdk-11.0.2/lib --add-modules=javafx.controls,javafx.fxml" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>

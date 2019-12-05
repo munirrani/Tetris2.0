@@ -1,17 +1,26 @@
 package fsktm.fop;
 
+
+import fsktm.fop.Shape.Tetrominoe;
+
+import java.awt.event.KeyAdapter;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+
 public class Main {
+
 
     public static void main(String[] args) {
 
-        //System.out.println("Hello World!");
+//        Tetris tetris = new Tetris();
+//        tetris.setVisible(true);
 
-        function(1);
+        CLI cli = new CLI();
+
+
     }
 
-    static void function(int x) {
-        System.out.println(x);
-    }
 
 
 }
