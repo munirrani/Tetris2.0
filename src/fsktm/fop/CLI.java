@@ -76,17 +76,17 @@ public class CLI {
                 }
             } else if (input.equals("r")) {
                 if (canRotate()) {
+                    putShadowShapeOnBoard(currentX, currentY, currentShape, Tetrominoe.NoShape, -1); // remove
                     rotate();
+                    putShadowShapeOnBoard(currentX, currentY, currentShape, currentShape.getShape(), -2); // add
                 }
             } else if (input.equals("i")) {
                 insert();
             } else if (input.equals("e")) {
                 break;
             }
-
             checkForColumnAndRow();
             updatePreviewBoard();
-            //checkIfBlocksAvailable();
             printBoard();
             printBlockPreviews();
             if (isFull) { // Game over
@@ -137,11 +137,9 @@ public class CLI {
     }
 
     private void rotate() {
-        putShadowShapeOnBoard(currentX, currentY, currentShape, Tetrominoe.NoShape, -1); // remove
         currentShape = currentShape.rotateRight();
         previewShape.set(0, currentShape);
         retainNumber();
-        putShadowShapeOnBoard(currentX, currentY, currentShape, currentShape.getShape(), -2); // add
     }
 
     private void initBoard() {
@@ -220,45 +218,27 @@ public class CLI {
 
         if (blocksIsAvailable()) {
             putShadowShapeOnBoard(currentX, currentY, currentShape, currentShape.getShape(), -2);
+        } else {
+            isFull = true;
         }
         shape1 = currentShape;
     }
 
-//    private void checkIfBlocksAvailable() {
-//        Shape tempShape = currentShape;
-//        if (blocksIsAvailable(tempShape)) { // normal block
-//            putShadowShapeOnBoard(currentX, currentY, currentShape, currentShape.getShape(), -2);
-//            shape1 = currentShape;
-//            return;
-//        }
-//        tempShape = tempShape.rotateRight();
-//        if (blocksIsAvailable(tempShape) && canRotate(tempShape)) { // 90 degrees
-//            rotate();
-//            shape1 = currentShape;
-//            return;
-//        }
-//        tempShape = tempShape.rotateRight();
-//        if (blocksIsAvailable(tempShape) &&  canRotate(tempShape)) {
-//            rotate();
-//            shape1 = currentShape;
-//            return;
-//        }
-//        isFull = true;
-//    }
-
     private boolean blocksIsAvailable() {
         int x, y;
-        for (int k = 0; k< width * height; k++) {
-            if (numbers[k] >= 0) continue;
-            x = k % width;
-            y = (k - x) / 10;
-            if (tryMove(x, y, currentShape)) {
-                currentX = x;
-                currentY = y;
-                return true;
+        for (int i = 0; i < 3; i++) {
+            for (int k = 0; k < width * height; k++) {
+                if (numbers[k] >= 0) continue;
+                x = k % width;
+                y = (k - x) / 10;
+                if (tryMove(x, y, currentShape)) {
+                    currentX = x;
+                    currentY = y;
+                    return true;
+                }
             }
+            rotate();
         }
-        isFull = true;
         return false;
     }
     /*
