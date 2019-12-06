@@ -9,9 +9,11 @@ public class CLI {
 
     /*
     TODO
-    1 - Make the CLI version work with Shape class
-    2 - Introduce Block preview
-    3 - Once the core game functions are fully working, then make the GUI
+    1 - Bug: the game stops even after a row/column is cleared
+    2 - Tembus
+    3 - Hold mode
+    4 - Bug: preview is skewed when the game is done (fixed is after tembus & hold feature is done)
+    5 - Once the core game functions are fully working, then make the GUI
      */
     int width = 10;
     int height = 10;
@@ -46,6 +48,9 @@ public class CLI {
             System.out.print("a [<-] d [->] w [↑] s [↓] r [ROTATE] i [INSERT] e [EXIT]: ");
             input = scan.nextLine();
             currentShape = previewShape.get(0);
+             /*
+              TODO - Tembus
+             */
             if (input.equals("a")) {
                 testX = currentX - 1;
                 testY = currentY;
@@ -85,7 +90,6 @@ public class CLI {
             } else if (input.equals("e")) {
                 break;
             }
-            checkForColumnAndRow();
             updatePreviewBoard();
             printBoard();
             printBlockPreviews();
@@ -215,6 +219,7 @@ public class CLI {
         previewShape.remove(0);
         previewShape.add(generateRandomShape());
         currentShape = previewShape.get(0);
+        checkForColumnAndRow();
 
         if (blocksIsAvailable()) {
             putShadowShapeOnBoard(currentX, currentY, currentShape, currentShape.getShape(), -2);
@@ -307,9 +312,6 @@ public class CLI {
         }
     }
 
-    /*
-    TODO - Tembus
-     */
     private boolean tryMove(int newX, int newY, Shape shape) {
         for (int i = 0; i < 4; i++) {
             int x = newX + shape.x(i);
