@@ -41,28 +41,37 @@ public class CLI {
 
         Scanner scan = new Scanner(System.in);
         String input;
+        int testX, testY;
         while (true) {
             System.out.print("a [<-] d [->] w [↑] s [↓] r [ROTATE] i [INSERT] e [EXIT]: ");
             input = scan.nextLine();
-            currentShape = previewShape.get(0);;
+            currentShape = previewShape.get(0);
             if (input.equals("a")) {
-                if (tryMove(currentX - 1, currentY, currentShape)) {
-                    move(currentX - 1, currentY, currentShape);
+                testX = currentX - 1;
+                testY = currentY;
+                if (tryMove(testX, testY, currentShape)) {
+                    move(testX, testY, currentShape);
                     currentX--;
                 }
             } else if (input.equals("d")) {
-                if (tryMove(currentX + 1, currentY, currentShape)) {
-                    move(currentX + 1, currentY, currentShape);
+                testX = currentX + 1;
+                testY = currentY;
+                if (tryMove(testX, testY, currentShape)) {
+                    move(testX, testY, currentShape);
                     currentX++;
                 }
             } else if (input.equals("w")) {
-                if (tryMove(currentX, currentY - 1, currentShape)) {
-                    move(currentX, currentY - 1, currentShape);
+                testX = currentX;
+                testY = currentY - 1;
+                if (tryMove(testX, testY, currentShape)) {
+                    move(testX, testY, currentShape);
                     currentY--;
                 }
             } else if (input.equals("s")) {
-                if (tryMove(currentX , currentY + 1, currentShape)) {
-                    move(currentX, currentY + 1, currentShape);
+                testX = currentX;
+                testY = currentY + 1;
+                if (tryMove(testX , testY, currentShape)) {
+                    move(testX, testY, currentShape);
                     currentY++;
                 }
             } else if (input.equals("r")) {
@@ -74,6 +83,7 @@ public class CLI {
             } else if (input.equals("e")) {
                 break;
             }
+
             checkForColumnAndRow();
             updatePreviewBoard();
             //checkIfBlocksAvailable();
@@ -112,17 +122,18 @@ public class CLI {
     }
 
     private boolean canRotate() {
+        int count = 0;
         currentShape = currentShape.rotateRight();
         for (int i = 0; i < 4; i++) {
             int newX = currentX + currentShape.x(i);
             int newY = currentY + currentShape.y(i);
-            if (!tryMove(newX, newY, currentShape)) {
-                currentShape = currentShape.rotateLeft();
-                return false;
+            if (tryMove(newX, newY, currentShape)) {
+                count++;
             }
         }
         currentShape = currentShape.rotateLeft();
-        return true;
+        if (count == 4) return true;
+        return false;
     }
 
     private void rotate() {
@@ -247,6 +258,7 @@ public class CLI {
                 return true;
             }
         }
+        isFull = true;
         return false;
     }
     /*
@@ -330,8 +342,6 @@ public class CLI {
             }
         }
         currentShape = shape;
-//        currentX = newX;
-//        currentY = newY;
         return true;
     }
 
