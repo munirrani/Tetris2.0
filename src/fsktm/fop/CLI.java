@@ -9,11 +9,10 @@ public class CLI {
 
     /*
     TODO
-    1 - Bug: the game stops even after a row/column is cleared
-    2 - Tembus
-    3 - Hold mode
-    4 - Bug: preview is skewed when the game is done (fixed is after tembus & hold feature is done)
-    5 - Once the core game functions are fully working, then make the GUI
+    1 - Hold mode
+    2 - Bug: when rotating preview line shape, it goes out of border
+    3 - Bug: preview is skewed when the game is done (fixed is after tembus & hold feature is done)
+    4 - Once the core game functions are fully working, then make the GUI
      */
     int width = 10;
     int height = 10;
@@ -54,30 +53,54 @@ public class CLI {
             if (input.equals("a")) {
                 testX = currentX - 1;
                 testY = currentY;
-                if (tryMove(testX, testY, currentShape)) {
-                    move(testX, testY, currentShape);
-                    currentX--;
+                while (true) {
+                    if (testX < 0) break;
+                    if (tryMove(testX, testY, currentShape)) {
+                        move(testX, testY, currentShape);
+                        currentX = testX;
+                        break;
+                    } else {
+                        testX--;
+                    }
                 }
             } else if (input.equals("d")) {
                 testX = currentX + 1;
                 testY = currentY;
-                if (tryMove(testX, testY, currentShape)) {
-                    move(testX, testY, currentShape);
-                    currentX++;
+                while (true) {
+                    if (testX > width - 1) break;
+                    if (tryMove(testX, testY, currentShape)) {
+                        move(testX, testY, currentShape);
+                        currentX = testX;
+                        break;
+                    } else {
+                        testX++;
+                    }
                 }
             } else if (input.equals("w")) {
                 testX = currentX;
                 testY = currentY - 1;
-                if (tryMove(testX, testY, currentShape)) {
-                    move(testX, testY, currentShape);
-                    currentY--;
+                while (true) {
+                    if (testY < 0) break;
+                    if (tryMove(testX, testY, currentShape)) {
+                        move(testX, testY, currentShape);
+                        currentY = testY;
+                        break;
+                    } else {
+                        testY--;
+                    }
                 }
             } else if (input.equals("s")) {
                 testX = currentX;
                 testY = currentY + 1;
-                if (tryMove(testX , testY, currentShape)) {
-                    move(testX, testY, currentShape);
-                    currentY++;
+                while (true) {
+                    if (testY > height - 1) break;
+                    if (tryMove(testX, testY, currentShape)) {
+                        move(testX, testY, currentShape);
+                        currentY = testY;
+                        break;
+                    } else {
+                        testY++;
+                    }
                 }
             } else if (input.equals("r")) {
                 if (canRotate()) {
