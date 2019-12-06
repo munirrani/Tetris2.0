@@ -23,7 +23,6 @@ public class CLI {
     private Tetrominoe[] previewBoard = new Tetrominoe[previewHeight * previewWidth];
     private int[] previewNumbers = new int[previewHeight * previewWidth];
     private static ArrayList<Shape> previewShape = new ArrayList<Shape>(4);
-    private int[] currentNumbers = new int[4];
 
     private static Shape currentShape, shape1;
     private int currentX, currentY;
