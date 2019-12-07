@@ -10,7 +10,6 @@ public class CLI {
 
     /*
     TODO
-    1 - Hold mode
     3 - Bug: preview is skewed when the game is done (fixed is after tembus & hold feature is done)
     (use tryMove to solve the preview bugs)
     4 - Once the core game functions are fully working, then make the GUI
@@ -116,7 +115,6 @@ public class CLI {
                 break;
             } else if (input.equals("h")) {
                 swapBlock();
-                updateHoldBlockBoard();
             }
 
             updatePreviewBoard();
@@ -278,6 +276,7 @@ public class CLI {
     private void swapBlock() {
         if (previewShape.size() == 3) {
             // Set position 3 in ArrayList to place hold blocks
+            if (!canMove(currentX, currentY, previewShape.get(1))) return;
             previewShape.add(generateRandomShape());
             putShadowShapeOnBoard(currentX, currentY, currentShape, Tetrominoe.NoShape, -1);
             Collections.swap(previewShape, 0, 3);
@@ -286,11 +285,13 @@ public class CLI {
             currentShape = previewShape.get(0);
             putShadowShapeOnBoard(currentX, currentY, currentShape, currentShape.getShape(), -2);
         } else {
+            if (!canMove(currentX, currentY, previewShape.get(3))) return;
             putShadowShapeOnBoard(currentX, currentY, currentShape, Tetrominoe.NoShape, -1);
             Collections.swap(previewShape, 0, 3);
             currentShape = previewShape.get(0);
             putShadowShapeOnBoard(currentX, currentY, currentShape, currentShape.getShape(), -2);
         }
+        updateHoldBlockBoard();
     }
 
     private void insert() {
@@ -438,6 +439,20 @@ public class CLI {
             }
         }
         currentShape = shape;
+        return true;
+    }
+
+    private boolean canMove(int newX, int newY, Shape shape) {
+        for (int i = 0; i < 4; i++) {
+            int x = newX + shape.x(i);
+            int y = newY + shape.y(i);
+            if (x < 0 || x >= width || y < 0 || y >= height) {
+                return false;
+            }
+            if (shapeAt(x, y) != Tetrominoe.NoShape && numberAt(x, y) >= 0) {
+                return false;
+            }
+        }
         return true;
     }
 
