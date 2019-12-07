@@ -2,6 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="cd24aac0-ae70-4fbb-b4e5-b5775a296bc9" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Tetris2.0/fsktm/fop/CLI.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Tetris2.0/fsktm/fop/CLI.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/fsktm/fop/CLI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/fsktm/fop/CLI.java" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />

@@ -3,6 +3,7 @@ package fsktm.fop;
 import fsktm.fop.Shape.Tetrominoe;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Scanner;
 
 public class CLI {
@@ -10,18 +11,22 @@ public class CLI {
     /*
     TODO
     1 - Hold mode
-    2 - Bug: when rotating preview line shape, it goes out of border
     3 - Bug: preview is skewed when the game is done (fixed is after tembus & hold feature is done)
+    (use tryMove to solve the preview bugs)
     4 - Once the core game functions are fully working, then make the GUI
      */
     int width = 10;
     int height = 10;
     int previewWidth = width;
     int previewHeight = 4;
+    int holdBlockWidth = 4;
+    int holdBlockHeight = height;
     private Tetrominoe[] board = new Tetrominoe[height * width];
     private int[] numbers = new int [width * height];
     private Tetrominoe[] previewBoard = new Tetrominoe[previewHeight * previewWidth];
     private int[] previewNumbers = new int[previewHeight * previewWidth];
+    private Tetrominoe[] holdBlockBoard = new Tetrominoe[holdBlockWidth * holdBlockHeight];
+    private int[] holdBlockNumbers = new int[holdBlockWidth * holdBlockHeight];
     private static ArrayList<Shape> previewShape = new ArrayList<Shape>(4);
 
     private static Shape currentShape, shape1;
@@ -31,6 +36,7 @@ public class CLI {
     CLI() {
         initBoard();
         initPreviewBoard();
+        initHoldBlockBoard();
 
         currentX = width / 2 - 1; // start from the middle
         currentY =  height / 2 - 1;
@@ -43,12 +49,9 @@ public class CLI {
         String input;
         int testX, testY;
         while (true) {
-            System.out.print("a [<-] d [->] w [↑] s [↓] r [ROTATE] i [INSERT] e [EXIT]: ");
+            System.out.print("w [↑] a [<-] s [↓] d [->] r [ROTATE] i [INSERT] h [HOLD] e [EXIT]: ");
             input = scan.nextLine();
             currentShape = previewShape.get(0);
-             /*
-              TODO - Tembus
-             */
             if (input.equals("a")) {
                 testX = currentX - 1;
                 testY = currentY;
@@ -111,7 +114,11 @@ public class CLI {
                 insert();
             } else if (input.equals("e")) {
                 break;
+            } else if (input.equals("h")) {
+                swapBlock();
+                updateHoldBlockBoard();
             }
+
             updatePreviewBoard();
             printBoard();
             printBlockPreviews();
@@ -185,6 +192,11 @@ public class CLI {
         shape1 = currentShape;
     }
 
+    private void initHoldBlockBoard() {
+        clearHoldBlockBoard();
+    }
+
+
     private Tetrominoe shapeAt(int x, int y) {
         return board[(y * width) + x];
     }
@@ -201,11 +213,11 @@ public class CLI {
     }
 
     private Tetrominoe previewShapeAt(int x, int y) {
-        return previewBoard[(y * width) + x];
+        return previewBoard[(y * previewWidth) + x];
     }
 
     private int previewNumberAt(int x, int y) {
-        return previewNumbers[(y * width) + x];
+        return previewNumbers[(y * previewWidth) + x];
     }
 
     private void setPreviewShapeAt(int x, int y, Tetrominoe tetrominoe) {
@@ -213,6 +225,21 @@ public class CLI {
     }
     private void setPreviewNumberAt(int x, int y, int value) {
         previewNumbers[(y * previewWidth) + x] = value;
+    }
+
+    private Tetrominoe holdBlockAt(int x, int y) {
+        return holdBlockBoard[(y * holdBlockWidth) + x];
+    }
+
+    private int holdBlockNumberAt(int x, int y) {
+        return holdBlockNumbers[(y * holdBlockWidth) + x];
+    }
+
+    private void setHoldBlockAt(int x, int y, Tetrominoe tetrominoe) {
+        holdBlockBoard[(y * holdBlockWidth) + x] = tetrominoe;
+    }
+    private void setHoldBlockNumberAt(int x, int y, int value) {
+        holdBlockNumbers[(y * holdBlockWidth) + x] = value;
     }
 
     private Shape generateRandomShape() {
@@ -236,10 +263,46 @@ public class CLI {
         putShapeOnPreviewBoard(8,1,previewShape.get(0));
     }
 
+    private void clearHoldBlockBoard() {
+        for (int i = 0; i < holdBlockWidth * holdBlockHeight; i++) {
+            holdBlockBoard[i] = Tetrominoe.NoShape;
+            holdBlockNumbers[i] = -1; // -1 to indicate its nothing
+        }
+    }
+
+    private void updateHoldBlockBoard() {
+        clearHoldBlockBoard();
+        putShapeOnHoldBlockBoard(1, 6, previewShape.get(3));
+    }
+
+    private void swapBlock() {
+        if (previewShape.size() == 3) {
+            // Set position 3 in ArrayList to place hold blocks
+            previewShape.add(generateRandomShape());
+            putShadowShapeOnBoard(currentX, currentY, currentShape, Tetrominoe.NoShape, -1);
+            Collections.swap(previewShape, 0, 3);
+            Collections.swap(previewShape, 1, 2);
+            Collections.swap(previewShape, 0, 2);
+            currentShape = previewShape.get(0);
+            putShadowShapeOnBoard(currentX, currentY, currentShape, currentShape.getShape(), -2);
+        } else {
+            putShadowShapeOnBoard(currentX, currentY, currentShape, Tetrominoe.NoShape, -1);
+            Collections.swap(previewShape, 0, 3);
+            currentShape = previewShape.get(0);
+            putShadowShapeOnBoard(currentX, currentY, currentShape, currentShape.getShape(), -2);
+        }
+    }
+
     private void insert() {
         putShapeOnBoard(currentX, currentY, currentShape);
-        previewShape.remove(0);
-        previewShape.add(generateRandomShape());
+        if (previewShape.size() == 3) {
+            previewShape.remove(0);
+            previewShape.add(generateRandomShape());
+        } else {
+            Collections.swap(previewShape, 0, 1);
+            Collections.swap(previewShape,1, 2);
+            previewShape.set(2, generateRandomShape());
+        }
         currentShape = previewShape.get(0);
         checkForColumnAndRow();
 
@@ -334,6 +397,35 @@ public class CLI {
         }
     }
 
+    private void putShapeOnPreviewBoard(int a, int b, Shape newShape) {
+        for (int i = 0; i < 4; i++) {
+            int x = a + newShape.x(i);
+            int y = b + newShape.y(i);
+            // Line shape preview rotation fixes
+            if (newShape.getShape() == Tetrominoe.LineShape && newShape.y(3) < 0) {
+                y++;
+            }
+            if (newShape.getShape() == Tetrominoe.LineShape && newShape.x(0) < 0) {
+                x--;
+            }
+            setPreviewShapeAt(x, y, newShape.getShape());
+            setPreviewNumberAt(x, y, newShape.getNumberAt(i));
+        }
+    }
+
+    private void putShapeOnHoldBlockBoard(int a, int b, Shape shape) {
+        for (int i = 0; i < 4; i++) {
+            int x = a + shape.x(i);
+            int y = b + shape.y(i);
+            // Line shape fix
+            if (shape.getShape() == Tetrominoe.LineShape && shape.x(3) == -2) {
+                x++;
+            }
+            setHoldBlockAt(x, y, shape.getShape());
+            setHoldBlockNumberAt(x, y, shape.getNumberAt(i));
+        }
+    }
+
     private boolean tryMove(int newX, int newY, Shape shape) {
         for (int i = 0; i < 4; i++) {
             int x = newX + shape.x(i);
@@ -373,29 +465,32 @@ public class CLI {
         System.out.println();
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
-                if (j == 0) System.out.printf("/ "); //border stuff
+                if (j == 0) System.out.printf("/ "); //border
                 if (shapeAt(j, i) != Tetrominoe.NoShape && numberAt(j, i) >= 0) {
-                    System.out.printf(" %d ", numbers[(i * width) + j]); //The number
+                    System.out.printf(" %d ", numberAt(j, i)); //The number
                 } else if (shapeAt(j, i) != Tetrominoe.NoShape && numberAt(j, i) == -2) {
                     System.out.printf(" + "); // Shadow
                 } else {
                     System.out.printf("   ");
                 }
-                if (j == width - 1) System.out.printf(" /"); //border stuff
+                if (j == width - 1) System.out.printf(" /"); //border
+            }
+            /*
+            Hold block stuff
+             */
+            for (int k = 0; k < holdBlockWidth; k++) {
+                if (k == 0 && i == 3) {
+                    System.out.printf(" Hold: ") ;
+                 } else if (holdBlockAt(k, i) == Tetrominoe.NoShape && holdBlockNumberAt(k, i) == -1) {
+                    System.out.printf("   ");
+                } else {
+                    System.out.printf(" %d ", holdBlockNumberAt(k, i)); //The number
+                }
             }
             System.out.println();
         }
         for(int a = 0; a < width + 2; a++) System.out.printf("/  ");
         System.out.println();
-    }
-
-    private void putShapeOnPreviewBoard(int a, int b, Shape newShape) {
-        for (int i = 0; i < 4; i++) {
-            int x = a + newShape.x(i);
-            int y = b + newShape.y(i);
-            setPreviewShapeAt(x, y, newShape.getShape());
-            setPreviewNumberAt(x, y, newShape.getNumberAt(i));
-        }
     }
 
     private void printBlockPreviews() {
