@@ -13,14 +13,14 @@ public class Tetris extends JFrame {
 
     Tetris() {
         statusbar = new JLabel("0");
-        Board board = new Board(this);
-        add(board);
+        //Board board = new Board(this);
+        //add(board);
+        GUI gui = new GUI();
+        add(gui);
 
         setSize(600, 600);
         setTitle("My First Game!");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-
     }
 
 

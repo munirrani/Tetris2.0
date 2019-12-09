@@ -11,7 +11,6 @@ public class Shape {
     private int coords[][];
     private int[][][] coordsTable;
     private int numbers[] = new int[4];
-    private ArrayList<Integer> numberList = new ArrayList<Integer>(4);
     private static Random random = new Random();
 
     public Shape() {
@@ -132,7 +131,11 @@ public class Shape {
     /*
     TODO - Avoid using ArrayList
      */
+
+    // private int numbers[] = new int[4];
+
     public void setRandomNumber() {
+        ArrayList<Integer> numberList = new ArrayList<Integer>(4);
         int randomNumber, count = 0;
         while (count != 4) {
             randomNumber = random.nextInt(10);
@@ -141,11 +144,9 @@ public class Shape {
                 count++;
             }
         }
-
         for (int i = 0; i < 4; i++) {
             numbers[i] = numberList.get(i);
         }
-        System.out.println();
     }
 
     public int getNumberAt(int index) {

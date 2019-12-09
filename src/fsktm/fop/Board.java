@@ -9,7 +9,6 @@ public class Board extends JPanel {
     private Tetris tetris;
     private Timer timer;
     private Graphics graphics;
-    int x = 100, y = 100;
     Color color, color2, color3;
 
     Board(Tetris game) {
@@ -17,13 +16,9 @@ public class Board extends JPanel {
         color2 = new Color(234,12, 234);
         color3 = new Color(41,153,153);
 
-
         setFocusable(true);
         setBackground(color3);
         tetris = game;
-
-        timer = new Timer(1000, new Cycle(this));
-        timer.start();
     }
 
     @Override
@@ -35,19 +30,25 @@ public class Board extends JPanel {
 
     private void drawSquare(Graphics g) {
 
+        int squareWidth = 50, squareHeight = 50;
+        int x = 50, y = 50;
+
         g.setColor(color);
-        g.fillRect(100, 100, 200 ,200);
+        g.fillRect(x, y, squareWidth ,squareHeight);
 
-        g.setColor(color2);
-        g.fillRect(x+200, y+200, 200 ,200);
-
-
+        // TODO - Put number string in the middle of a square block
+        g.setColor(color.darker());
+        String number = "1";
+        FontMetrics fontMetrics = g.getFontMetrics();
+        int textWidth = fontMetrics.stringWidth(number);
+        int textHeight = fontMetrics.getHeight();
+        g.drawString(number, (x + (squareWidth / 2) - textWidth / 2), (y + (squareHeight / 2) + (textWidth / 2)));
     }
+
     public void update() {
         System.out.println(timer.getDelay());
         getGraphics().setColor(color);
         getGraphics().fillRect(100, 300, 200 ,200);
-
 
     }
 
