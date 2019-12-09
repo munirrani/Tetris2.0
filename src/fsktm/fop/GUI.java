@@ -42,6 +42,14 @@ public class GUI extends JPanel {
 
     Font minecraftFont;
 
+    /*
+    TODO
+    1 - Retain number when the block tries to rotate on the edges
+    2 - Add preview and hold block board
+    3 - Make an easy game mode
+    4 - Scoring system
+     */
+
     GUI() {
         initBoard();
         initPreviewBoard();
@@ -114,6 +122,7 @@ public class GUI extends JPanel {
             }
         }
         currentShape = currentShape.rotateLeft();
+        retainNumber();
         if (count == 4) return true;
         return false;
     }
@@ -553,9 +562,9 @@ public class GUI extends JPanel {
         @Override
         public void keyPressed(KeyEvent e) {
 
-//            if (currentShape.getShape() == Tetrominoe.NoShape) {
-//                return;
-//            }
+            if (currentShape.getShape() == Tetrominoe.NoShape) {
+                return;
+            }
 
             int keycode = e.getKeyCode();
             int testX, testY;
