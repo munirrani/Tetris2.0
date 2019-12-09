@@ -12,7 +12,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Scanner;
 
 public class GUI extends JPanel {
 
@@ -537,10 +536,8 @@ public class GUI extends JPanel {
         if (currentShape.getShape() != Tetrominoe.NoShape) {
 
             for (int i = 0; i < 4; i++) {
-
                 int x = currentX + currentShape.x(i);
                 int y = currentY + currentShape.y(i);
-
                 drawSquare(g, x * squareWidth(),
                         y * squareHeight(),
                         currentShape.getShape(), currentShape.getNumberAt(i));
