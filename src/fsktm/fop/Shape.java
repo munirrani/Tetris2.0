@@ -132,8 +132,6 @@ public class Shape {
     TODO - Avoid using ArrayList
      */
 
-    // private int numbers[] = new int[4];
-
     public void setRandomNumber() {
         ArrayList<Integer> numberList = new ArrayList<Integer>(4);
         int randomNumber, count = 0;

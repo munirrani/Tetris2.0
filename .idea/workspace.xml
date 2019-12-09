@@ -2,7 +2,18 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="cd24aac0-ae70-4fbb-b4e5-b5775a296bc9" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/src/fsktm/fop/GUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/fsktm/fop/GUI.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Tetris2.0/fsktm/fop/Board.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Tetris2.0/fsktm/fop/Board.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Tetris2.0/fsktm/fop/Cycle.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Tetris2.0/fsktm/fop/GUI$GameCycle.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Tetris2.0/fsktm/fop/GUI$ShortcutAdapter.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Tetris2.0/fsktm/fop/GUI.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Tetris2.0/fsktm/fop/Shape.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Tetris2.0/fsktm/fop/Shape.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Tetris2.0/fsktm/fop/Tetris.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Tetris2.0/fsktm/fop/Tetris.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/fsktm/fop/GUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/fsktm/fop/Board.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/fsktm/fop/Shape.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/fsktm/fop/Shape.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/fsktm/fop/Tetris.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/fsktm/fop/Tetris.java" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -22,6 +33,7 @@
   </component>
   <component name="ProjectId" id="1SwpZFZTquTGmX82eUZRbiGV7kD" />
   <component name="PropertiesComponent">
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="last_directory_selection" value="$PROJECT_DIR$/src/fsktm/fop" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="project.structure.last.edited" value="Modules" />

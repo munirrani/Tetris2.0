@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class GUI extends JPanel {
+public class Board extends JPanel {
 
     /*
     TODO
@@ -40,6 +40,8 @@ public class GUI extends JPanel {
     private boolean isFull = false;
 
     Font minecraftFont;
+    private PreviewBoard boardPreview;
+    private HoldBlock holdBlock;
 
     /*
     TODO
@@ -49,25 +51,21 @@ public class GUI extends JPanel {
     4 - Scoring system
      */
 
-    GUI() {
+    Board() {
         initBoard();
-        initPreviewBoard();
-        initHoldBlockBoard();
+        boardPreview = new PreviewBoard();
+        holdBlock = new HoldBlock();
+
         addKeyListener(new ShortcutAdapter());
 
         currentX = width / 2 - 1; // start from the middle
         currentY =  height / 2 - 1;
         putShadowShapeOnBoard(currentX ,currentY, currentShape, currentShape.getShape(), -2);
-
-        printBoard();
-        printBlockPreviews();
-
         setFocusable(true);
 
         try {
             minecraftFont = Font.createFont(Font.TRUETYPE_FONT, new File("Minecraft.ttf")).deriveFont(18f);
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            //register the font
             ge.registerFont(minecraftFont);
         } catch (IOException e) {
             e.printStackTrace();
@@ -77,11 +75,11 @@ public class GUI extends JPanel {
 
     }
 
-    private int squareWidth() {
+    public int squareWidth() {
         return (int) getSize().getWidth() / width;
     }
 
-    private int squareHeight() {
+    public int squareHeight() {
         return (int) getSize().getHeight() / height;
     }
 
@@ -130,6 +128,8 @@ public class GUI extends JPanel {
         currentShape = currentShape.rotateRight();
         previewShape.set(0, currentShape);
         retainNumber();
+        boardPreview.updatePreviewBoard();
+        boardPreview.repaint();
     }
 
     private void initBoard() {
@@ -138,21 +138,6 @@ public class GUI extends JPanel {
             numbers[i] = -1; // Use -1 to indicate its empty
         }
     }
-
-    private void initPreviewBoard() {
-        clearPreviewBoard();
-        for (int i = 0; i < 3; i++) {
-            previewShape.add(generateRandomShape());
-        }
-        updatePreviewBoard(); // <- Redundant (TODO)
-        currentShape = previewShape.get(0);
-        shape1 = currentShape;
-    }
-
-    private void initHoldBlockBoard() {
-        clearHoldBlockBoard();
-    }
-
 
     private Tetrominoe shapeAt(int x, int y) {
         return board[(y * width) + x];
@@ -169,67 +154,11 @@ public class GUI extends JPanel {
         numbers[(y * width) + x] = value;
     }
 
-    private Tetrominoe previewShapeAt(int x, int y) {
-        return previewBoard[(y * previewWidth) + x];
-    }
-
-    private int previewNumberAt(int x, int y) {
-        return previewNumbers[(y * previewWidth) + x];
-    }
-
-    private void setPreviewShapeAt(int x, int y, Tetrominoe tetrominoe) {
-        previewBoard[(y * previewWidth) + x] = tetrominoe;
-    }
-    private void setPreviewNumberAt(int x, int y, int value) {
-        previewNumbers[(y * previewWidth) + x] = value;
-    }
-
-    private Tetrominoe holdBlockAt(int x, int y) {
-        return holdBlockBoard[(y * holdBlockWidth) + x];
-    }
-
-    private int holdBlockNumberAt(int x, int y) {
-        return holdBlockNumbers[(y * holdBlockWidth) + x];
-    }
-
-    private void setHoldBlockAt(int x, int y, Tetrominoe tetrominoe) {
-        holdBlockBoard[(y * holdBlockWidth) + x] = tetrominoe;
-    }
-    private void setHoldBlockNumberAt(int x, int y, int value) {
-        holdBlockNumbers[(y * holdBlockWidth) + x] = value;
-    }
-
-    private Shape generateRandomShape() {
+    public Shape generateRandomShape() {
         var shape = new Shape();
         shape.setRandomShape();
         shape.setRandomNumber();
         return shape;
-    }
-
-    private void clearPreviewBoard() {
-        for (int i = 0; i < previewWidth * previewHeight; i++) {
-            previewBoard[i] = Tetrominoe.NoShape;
-            previewNumbers[i] = -1;
-        }
-    }
-
-    private void updatePreviewBoard() {
-        clearPreviewBoard();
-        putShapeOnPreviewBoard(1,1,previewShape.get(2));
-        putShapeOnPreviewBoard(4,1,previewShape.get(1));
-        putShapeOnPreviewBoard(8,1,previewShape.get(0));
-    }
-
-    private void clearHoldBlockBoard() {
-        for (int i = 0; i < holdBlockWidth * holdBlockHeight; i++) {
-            holdBlockBoard[i] = Tetrominoe.NoShape;
-            holdBlockNumbers[i] = -1; // -1 to indicate its nothing
-        }
-    }
-
-    private void updateHoldBlockBoard() {
-        clearHoldBlockBoard();
-        putShapeOnHoldBlockBoard(1, 6, previewShape.get(3));
     }
 
     private void swapBlock() {
@@ -250,7 +179,11 @@ public class GUI extends JPanel {
             currentShape = previewShape.get(0);
             putShadowShapeOnBoard(currentX, currentY, currentShape, currentShape.getShape(), -2);
         }
-        updateHoldBlockBoard();
+        holdBlock.updateHoldBlockBoard();
+        holdBlock.repaint();
+        boardPreview.updatePreviewBoard();
+        boardPreview.repaint();
+        repaint();
     }
 
     private void insert() {
@@ -273,7 +206,8 @@ public class GUI extends JPanel {
             return;
         }
         shape1 = currentShape;
-        updatePreviewBoard();
+        boardPreview.updatePreviewBoard();
+        boardPreview.repaint();
         repaint();
     }
 
@@ -360,35 +294,6 @@ public class GUI extends JPanel {
         }
     }
 
-    private void putShapeOnPreviewBoard(int a, int b, Shape newShape) {
-        for (int i = 0; i < 4; i++) {
-            int x = a + newShape.x(i);
-            int y = b + newShape.y(i);
-            // Line shape preview rotation fixes
-            if (newShape.getShape() == Tetrominoe.LineShape && newShape.y(3) < 0) {
-                y++;
-            }
-            if (newShape.getShape() == Tetrominoe.LineShape && newShape.x(0) < 0) {
-                x--;
-            }
-            setPreviewShapeAt(x, y, newShape.getShape());
-            setPreviewNumberAt(x, y, newShape.getNumberAt(i));
-        }
-    }
-
-    private void putShapeOnHoldBlockBoard(int a, int b, Shape shape) {
-        for (int i = 0; i < 4; i++) {
-            int x = a + shape.x(i);
-            int y = b + shape.y(i);
-            // Line shape fix
-            if (shape.getShape() == Tetrominoe.LineShape && shape.x(3) == -2) {
-                x++;
-            }
-            setHoldBlockAt(x, y, shape.getShape());
-            setHoldBlockNumberAt(x, y, shape.getNumberAt(i));
-        }
-    }
-
     private boolean tryMove(int newX, int newY, Shape shape) {
         for (int i = 0; i < 4; i++) {
             int x = newX + shape.x(i);
@@ -437,56 +342,10 @@ public class GUI extends JPanel {
             setShapeAt(x, y, tetrominoe);
             setNumberAt(x, y, -2); //can only move shadow
         }
+        repaint();
     }
 
-    private void printBoard() {
-        for(int a = 0; a < width + 2; a++) System.out.printf("/  ");
-        System.out.println();
-        for (int i = 0; i < height; i++) {
-            for (int j = 0; j < width; j++) {
-                if (j == 0) System.out.printf("/ "); //border
-                if (shapeAt(j, i) != Tetrominoe.NoShape && numberAt(j, i) >= 0) {
-                    System.out.printf(" %d ", numberAt(j, i)); //The number
-                } else if (shapeAt(j, i) != Tetrominoe.NoShape && numberAt(j, i) == -2) {
-                    System.out.printf(" + "); // Shadow
-                } else {
-                    System.out.printf("   ");
-                }
-                if (j == width - 1) System.out.printf(" /"); //border
-            }
-            /*
-            Hold block stuff
-             */
-            for (int k = 0; k < holdBlockWidth; k++) {
-                if (k == 0 && i == 3) {
-                    System.out.printf(" Hold: ") ;
-                } else if (holdBlockAt(k, i) == Tetrominoe.NoShape && holdBlockNumberAt(k, i) == -1) {
-                    System.out.printf("   ");
-                } else {
-                    System.out.printf(" %d ", holdBlockNumberAt(k, i)); //The number
-                }
-            }
-            System.out.println();
-        }
-        for(int a = 0; a < width + 2; a++) System.out.printf("/  ");
-        System.out.println();
-    }
-
-    private void printBlockPreviews() {
-        for (int i = 0; i < previewHeight; i++) { // for the height of 4
-            for (int j = 0; j < previewWidth; j++) { // for the width of 10
-                if (previewShapeAt(j, i) != Tetrominoe.NoShape && previewNumberAt(j, i) != -1) {
-                    System.out.printf(" %d ", previewNumberAt(j, i));
-                } else {
-                    System.out.printf("   ");
-                }
-            }
-            System.out.println();
-        }
-        System.out.println();
-    }
-
-    private void drawSquare(Graphics g, int x, int y, Tetrominoe shape, int value) {
+    public void drawSquare(Graphics g, int x, int y, Tetrominoe shape, int value, boolean isShadow) {
 
         Color colors[] = {new Color(0, 0, 0), new Color(204, 102, 102),
                 new Color(102, 204, 102), new Color(102, 102, 204),
@@ -496,7 +355,11 @@ public class GUI extends JPanel {
 
         var color = colors[shape.ordinal()];
 
-        g.setColor(color);
+        if (isShadow) {
+            g.setColor(Color.GRAY);
+        } else {
+            g.setColor(color);
+        }
         g.fillRect(x + 1, y + 1, squareWidth() - 2, squareHeight() - 2);
 
         g.setColor(color.brighter());
@@ -509,6 +372,7 @@ public class GUI extends JPanel {
         g.drawLine(x + squareWidth() - 1, y + squareHeight() - 1,
                 x + squareWidth() - 1, y + 1);
 
+        if (isShadow) return;
         g.setColor(color.darker());
         String number = String.valueOf(value);
         FontMetrics fontMetrics = g.getFontMetrics();
@@ -526,31 +390,14 @@ public class GUI extends JPanel {
             for (int j = 0; j < width; j++) {
                 Tetrominoe shape = shapeAt(j, i);
                 int number = numberAt(j, i);
-                if (shape != Tetrominoe.NoShape && numberAt(j, i) >= 0) {
+                if (shape != Tetrominoe.NoShape && number >= 0) {
                     drawSquare(g, j * squareWidth(),
-                            i * squareHeight(), shape, number);
+                            i * squareHeight(), shape, number, false);
+                } else if (shape != Tetrominoe.NoShape && number == -2) {
+                    drawSquare(g, j * squareWidth(),
+                            i * squareHeight(), shape, number, true);
                 }
             }
-        }
-
-        if (currentShape.getShape() != Tetrominoe.NoShape) {
-
-            for (int i = 0; i < 4; i++) {
-                int x = currentX + currentShape.x(i);
-                int y = currentY + currentShape.y(i);
-                drawSquare(g, x * squareWidth(),
-                        y * squareHeight(),
-                        currentShape.getShape(), currentShape.getNumberAt(i));
-            }
-        }
-    }
-
-    private class GameCycle implements ActionListener {
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-
-            repaint();
         }
     }
 
@@ -566,7 +413,6 @@ public class GUI extends JPanel {
             int keycode = e.getKeyCode();
             int testX, testY;
 
-            // Java 12 switch expressions
             switch (keycode) {
                 case KeyEvent.VK_A:
                     testX = currentX - 1;
@@ -642,5 +488,162 @@ public class GUI extends JPanel {
                     break;
             }
         }
+    }
+
+    public PreviewBoard getBoardPreview() {
+        return boardPreview;
+    }
+
+    public HoldBlock getHoldBlock() {
+        return holdBlock;
+    }
+
+    class PreviewBoard extends JPanel {
+
+        PreviewBoard() {
+            initPreviewBoard();
+            Board.this.setFocusable(true);
+        }
+
+        private void initPreviewBoard() {
+            clearPreviewBoard();
+            for (int i = 0; i < 3; i++) {
+                previewShape.add(generateRandomShape());
+            }
+            updatePreviewBoard(); // <- Redundant (TODO)
+            currentShape = previewShape.get(0);
+            shape1 = currentShape;
+        }
+
+        private void clearPreviewBoard() {
+            for (int i = 0; i < previewWidth * previewHeight; i++) {
+                previewBoard[i] = Tetrominoe.NoShape;
+                previewNumbers[i] = -1;
+            }
+        }
+
+        private void updatePreviewBoard() {
+            clearPreviewBoard();
+            putShapeOnPreviewBoard(1,1,previewShape.get(2));
+            putShapeOnPreviewBoard(4,1,previewShape.get(1));
+            putShapeOnPreviewBoard(8,1,previewShape.get(0));
+        }
+
+        private Tetrominoe previewShapeAt(int x, int y) {
+            return previewBoard[(y * previewWidth) + x];
+        }
+
+        private int previewNumberAt(int x, int y) {
+            return previewNumbers[(y * previewWidth) + x];
+        }
+
+        private void setPreviewShapeAt(int x, int y, Tetrominoe tetrominoe) {
+            previewBoard[(y * previewWidth) + x] = tetrominoe;
+        }
+        private void setPreviewNumberAt(int x, int y, int value) {
+            previewNumbers[(y * previewWidth) + x] = value;
+        }
+
+        public void putShapeOnPreviewBoard(int a, int b, Shape newShape) {
+            for (int i = 0; i < 4; i++) {
+                int x = a + newShape.x(i);
+                int y = b + newShape.y(i);
+                // Line shape preview rotation fixes
+                if (newShape.getShape() == Tetrominoe.LineShape && newShape.y(3) < 0) {
+                    y++;
+                }
+                if (newShape.getShape() == Tetrominoe.LineShape && newShape.x(0) < 0) {
+                    x--;
+                }
+                setPreviewShapeAt(x, y, newShape.getShape());
+                setPreviewNumberAt(x, y, newShape.getNumberAt(i));
+            }
+        }
+
+        @Override
+        public void paintComponent(Graphics g) {
+
+            super.paintComponent(g);
+
+            for (int i = 0; i < previewHeight; i++) {
+                for (int j = 0; j < previewWidth; j++) {
+                    Tetrominoe shape = previewShapeAt(j, i);
+                    int number = previewNumberAt(j, i);
+                    if (shape != Tetrominoe.NoShape && number != -1) {
+                        drawSquare(g, j * squareWidth(),
+                                i * squareHeight(), shape, number, false);
+                    }
+                }
+            }
+        }
+    }
+
+    class HoldBlock extends JPanel {
+        HoldBlock() {
+            initHoldBlockBoard();
+            Board.this.setFocusable(true);
+        }
+
+        private void initHoldBlockBoard() {
+            clearHoldBlockBoard();
+        }
+
+        private Tetrominoe holdBlockAt(int x, int y) {
+            return holdBlockBoard[(y * holdBlockWidth) + x];
+        }
+
+        private int holdBlockNumberAt(int x, int y) {
+            return holdBlockNumbers[(y * holdBlockWidth) + x];
+        }
+
+        private void setHoldBlockAt(int x, int y, Tetrominoe tetrominoe) {
+            holdBlockBoard[(y * holdBlockWidth) + x] = tetrominoe;
+        }
+        private void setHoldBlockNumberAt(int x, int y, int value) {
+            holdBlockNumbers[(y * holdBlockWidth) + x] = value;
+        }
+
+        private void clearHoldBlockBoard() {
+            for (int i = 0; i < holdBlockWidth * holdBlockHeight; i++) {
+                holdBlockBoard[i] = Tetrominoe.NoShape;
+                holdBlockNumbers[i] = -1; // -1 to indicate its nothing
+            }
+        }
+
+        private void updateHoldBlockBoard() {
+            clearHoldBlockBoard();
+            putShapeOnHoldBlockBoard(1, 6, previewShape.get(3));
+        }
+
+        private void putShapeOnHoldBlockBoard(int a, int b, Shape shape) {
+            for (int i = 0; i < 4; i++) {
+                int x = a + shape.x(i);
+                int y = b + shape.y(i);
+                // Line shape fix
+                if (shape.getShape() == Tetrominoe.LineShape && shape.x(3) == -2) {
+                    x++;
+                }
+                setHoldBlockAt(x, y, shape.getShape());
+                setHoldBlockNumberAt(x, y, shape.getNumberAt(i));
+            }
+        }
+
+        @Override
+        public void paintComponent(Graphics g) {
+
+            super.paintComponent(g);
+
+            for (int i = 0; i < holdBlockHeight; i++) {
+                for (int j = 0; j < holdBlockWidth; j++) {
+                    Tetrominoe shape = holdBlockAt(j, i);
+                    int number = holdBlockNumberAt(j, i);
+                    if (shape != Tetrominoe.NoShape && number != -1) {
+                        drawSquare(g, j * squareWidth(),
+                                i * squareHeight(), shape, number, false);
+                    }
+                }
+            }
+        }
+
     }
 }
