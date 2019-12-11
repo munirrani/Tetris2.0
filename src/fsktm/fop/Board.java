@@ -43,6 +43,9 @@ public class Board extends JPanel {
     private PreviewBoard boardPreview;
     private HoldBlock holdBlock;
 
+    private int currentScore = 0;
+    private int newScore;
+
     /*
     TODO
     1 - Retain number when the block tries to rotate on the edges
@@ -187,28 +190,31 @@ public class Board extends JPanel {
     }
 
     private void insert() {
-        putShapeOnBoard(currentX, currentY, currentShape);
-        if (previewShape.size() == 3) {
-            previewShape.remove(0);
-            previewShape.add(generateRandomShape());
-        } else {
-            Collections.swap(previewShape, 0, 1);
-            Collections.swap(previewShape,1, 2);
-            previewShape.set(2, generateRandomShape());
+        if (!isFull) {
+            putShapeOnBoard(currentX, currentY, currentShape);
+            if (previewShape.size() == 3) {
+                previewShape.remove(0);
+                previewShape.add(generateRandomShape());
+            } else {
+                Collections.swap(previewShape, 0, 1);
+                Collections.swap(previewShape, 1, 2);
+                previewShape.set(2, generateRandomShape());
+            }
+            currentShape = previewShape.get(0);
+            checkForColumnAndRow();
         }
-        currentShape = previewShape.get(0);
-        checkForColumnAndRow();
 
         if (blocksIsAvailable()) {
             putShadowShapeOnBoard(currentX, currentY, currentShape, currentShape.getShape(), -2);
+            shape1 = currentShape;
+            boardPreview.updatePreviewBoard();
+            boardPreview.repaint();
+            repaint();
         } else {
             isFull = true;
+            repaint();
             return;
         }
-        shape1 = currentShape;
-        boardPreview.updatePreviewBoard();
-        boardPreview.repaint();
-        repaint();
     }
 
     private boolean blocksIsAvailable() {
@@ -381,6 +387,10 @@ public class Board extends JPanel {
         g.drawString(number, (x + (squareWidth() / 2) - textWidth / 2), (y + (squareHeight() / 2) + (textWidth / 2)));
     }
 
+    public boolean gameIsOver() {
+        return isFull;
+    }
+
     @Override
     public void paintComponent(Graphics g) {
 
@@ -486,6 +496,10 @@ public class Board extends JPanel {
                     break;
                 case KeyEvent.VK_E:
                     break;
+                case KeyEvent.VK_C:
+                    initBoard();
+                    repaint();
+                    break;
             }
         }
     }
@@ -527,6 +541,10 @@ public class Board extends JPanel {
             putShapeOnPreviewBoard(1,1,previewShape.get(2));
             putShapeOnPreviewBoard(4,1,previewShape.get(1));
             putShapeOnPreviewBoard(8,1,previewShape.get(0));
+        }
+
+        private void updateScore() {
+            currentScore += newScore;
         }
 
         private Tetrominoe previewShapeAt(int x, int y) {
@@ -644,6 +662,5 @@ public class Board extends JPanel {
                 }
             }
         }
-
     }
 }

@@ -34,6 +34,8 @@ public class Tetris extends JFrame {
         setSize(600, 600);
         setTitle("My First Game!");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        if(board.gameIsOver()) setTitle("Game Over!");
     }
 
 
