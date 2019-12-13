@@ -2,12 +2,12 @@ package fsktm.fop;
 
 import fsktm.fop.Shape.Tetrominoe;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,12 +15,6 @@ import java.util.Collections;
 
 public class Board extends JPanel {
 
-    /*
-    TODO
-    3 - Bug: preview is skewed when the game is done (fixed is after tembus & hold feature is done)
-    (use tryMove to solve the preview bugs)
-    4 - Once the core game functions are fully working, then make the GUI
-     */
     int width = 10;
     int height = 10;
     int previewWidth = width;
@@ -39,23 +33,32 @@ public class Board extends JPanel {
     private int currentX, currentY;
     private boolean isFull = false;
 
-    Font minecraftFont;
+    private static Font minecraftFont;
     private PreviewBoard boardPreview;
     private HoldBlock holdBlock;
 
+    private int columnCleared, rowCleared;
     private int currentScore = 0;
     private int newScore;
 
-    /*
-    TODO
-    1 - Retain number when the block tries to rotate on the edges
-    2 - Add preview and hold block board
-    3 - Make an easy game mode
-    4 - Scoring system
-     */
+    private Shape tempShape;
+
+    private static BufferedImage background;
 
     Board() {
         initBoard();
+
+        try {
+            minecraftFont = Font.createFont(Font.TRUETYPE_FONT, new File("Minecraft.ttf")).deriveFont(18f);
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            ge.registerFont(minecraftFont);
+            background = ImageIO.read(new File("wallpaper.jpg"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch(FontFormatException e) {
+            e.printStackTrace();
+        }
+
         boardPreview = new PreviewBoard();
         holdBlock = new HoldBlock();
 
@@ -65,17 +68,6 @@ public class Board extends JPanel {
         currentY =  height / 2 - 1;
         putShadowShapeOnBoard(currentX ,currentY, currentShape, currentShape.getShape(), -2);
         setFocusable(true);
-
-        try {
-            minecraftFont = Font.createFont(Font.TRUETYPE_FONT, new File("Minecraft.ttf")).deriveFont(18f);
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            ge.registerFont(minecraftFont);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch(FontFormatException e) {
-            e.printStackTrace();
-        }
-
     }
 
     public int squareWidth() {
@@ -93,20 +85,34 @@ public class Board extends JPanel {
     }
 
     private void checkForColumnAndRow() {
-        /*
-        TODO - What if both rows and columns are simultaneously even?
-        boolean rowEven = false, columnEven = false;
-        */
+        boolean[] rowClerared = new boolean[10];
+        boolean[] columnCleared = new boolean[10];
+
+        for (int i = 0; i < 10; i++) {
+            rowClerared[i] = false;
+            columnCleared[i] = false;
+        }
         for (int i = 0; i < width; i++) {
             if (sumEvenForRow(i)) {
-                clearRow(i);
+                rowClerared[i] = true;
+                this.rowCleared++;
                 System.out.println("Row " + (i+1) + " cleared!");
             }
         }
-        for (int i = 0; i < height; i++) {
-            if (sumEvenForColumn(i)) {
+        for (int j = 0; j < height; j++) {
+            if (sumEvenForColumn(j)) {
+                columnCleared[j] = true;
+                this.columnCleared++;
+                System.out.println("Column " + (j+1) + " cleared!");
+            }
+        }
+
+        for (int i = 0; i < 10; i++) {
+            if (rowClerared[i] == true) {
+                clearRow(i);
+            }
+            if (columnCleared[i] == true) {
                 clearColumn(i);
-                System.out.println("Column " + (i+1) + " cleared!");
             }
         }
     }
@@ -115,9 +121,9 @@ public class Board extends JPanel {
         int count = 0;
         currentShape = currentShape.rotateRight();
         for (int i = 0; i < 4; i++) {
-            int newX = currentX + currentShape.x(i);
-            int newY = currentY + currentShape.y(i);
-            if (tryMove(newX, newY, currentShape)) {
+            int x = currentX + currentShape.x(i);
+            int y = currentY + currentShape.y(i);
+            if (tryMove(x, y, currentShape)) {
                 count++;
             }
         }
@@ -202,6 +208,7 @@ public class Board extends JPanel {
             }
             currentShape = previewShape.get(0);
             checkForColumnAndRow();
+            updateScore();
         }
 
         if (blocksIsAvailable()) {
@@ -217,6 +224,10 @@ public class Board extends JPanel {
         }
     }
 
+    private void updateScore() {
+        currentScore += newScore;
+    }
+
     private boolean blocksIsAvailable() {
         int x, y;
         for (int i = 0; i < 3; i++) {
@@ -230,13 +241,11 @@ public class Board extends JPanel {
                     return true;
                 }
             }
-            rotate();
+            if (!isFull) rotate();
         }
         return false;
     }
-    /*
-    TODO - Total count of vertical and horizontal columns
-     */
+
     private boolean sumEvenForRow(int row) {
         int sum = 0;
         int count = 0;
@@ -351,21 +360,20 @@ public class Board extends JPanel {
         repaint();
     }
 
-    public void drawSquare(Graphics g, int x, int y, Tetrominoe shape, int value, boolean isShadow) {
+    public void drawSquare(Graphics g, int x, int y, Tetrominoe shape, int value, boolean isShadow, Color c) {
 
-        Color colors[] = {new Color(0, 0, 0), new Color(204, 102, 102),
-                new Color(102, 204, 102), new Color(102, 102, 204),
-                new Color(204, 204, 102), new Color(204, 102, 204),
-                new Color(102, 204, 204), new Color(218, 170, 0)
+        Color colors[] = {new Color(0, 0, 0), new Color(255, 55, 55),
+                new Color(82, 185, 68), new Color(60, 60, 240),
+                new Color(244, 244, 33), new Color(170, 53, 221),
+                new Color(57, 221, 221), new Color(240, 120, 60)
         };
 
         var color = colors[shape.ordinal()];
+        if (isShadow) color = Color.GRAY;
+        if (c != null) color = c;
 
-        if (isShadow) {
-            g.setColor(Color.GRAY);
-        } else {
-            g.setColor(color);
-        }
+        g.setColor(color);
+
         g.fillRect(x + 1, y + 1, squareWidth() - 2, squareHeight() - 2);
 
         g.setColor(color.brighter());
@@ -395,6 +403,7 @@ public class Board extends JPanel {
     public void paintComponent(Graphics g) {
 
         super.paintComponent(g);
+        g.drawImage(background, 0,0, (int)getSize().getWidth(), (int)getSize().getHeight(), null);
 
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
@@ -402,10 +411,10 @@ public class Board extends JPanel {
                 int number = numberAt(j, i);
                 if (shape != Tetrominoe.NoShape && number >= 0) {
                     drawSquare(g, j * squareWidth(),
-                            i * squareHeight(), shape, number, false);
+                            i * squareHeight(), shape, number, false, null);
                 } else if (shape != Tetrominoe.NoShape && number == -2) {
                     drawSquare(g, j * squareWidth(),
-                            i * squareHeight(), shape, number, true);
+                            i * squareHeight(), shape, number, true, null);
                 }
             }
         }
@@ -515,6 +524,7 @@ public class Board extends JPanel {
     class PreviewBoard extends JPanel {
 
         PreviewBoard() {
+            super();
             initPreviewBoard();
             Board.this.setFocusable(true);
         }
@@ -524,7 +534,7 @@ public class Board extends JPanel {
             for (int i = 0; i < 3; i++) {
                 previewShape.add(generateRandomShape());
             }
-            updatePreviewBoard(); // <- Redundant (TODO)
+            updatePreviewBoard();
             currentShape = previewShape.get(0);
             shape1 = currentShape;
         }
@@ -543,9 +553,6 @@ public class Board extends JPanel {
             putShapeOnPreviewBoard(8,1,previewShape.get(0));
         }
 
-        private void updateScore() {
-            currentScore += newScore;
-        }
 
         private Tetrominoe previewShapeAt(int x, int y) {
             return previewBoard[(y * previewWidth) + x];
@@ -589,7 +596,7 @@ public class Board extends JPanel {
                     int number = previewNumberAt(j, i);
                     if (shape != Tetrominoe.NoShape && number != -1) {
                         drawSquare(g, j * squareWidth(),
-                                i * squareHeight(), shape, number, false);
+                                i * squareHeight(), shape, number, false, null);
                     }
                 }
             }
@@ -598,8 +605,41 @@ public class Board extends JPanel {
 
     class HoldBlock extends JPanel {
         HoldBlock() {
+            super();
             initHoldBlockBoard();
             Board.this.setFocusable(true);
+            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+
+            JTextArea tetris = new JTextArea();
+            tetris.setAlignmentX(Component.CENTER_ALIGNMENT);
+            tetris.setAlignmentY(Component.TOP_ALIGNMENT);
+            tetris.setText("TETRIS 2.0");
+            tetris.setVisible(true);
+            add(tetris);
+            Font minecraftFontBigger = minecraftFont.deriveFont(24f);
+            tetris.setFont(minecraftFontBigger);
+            tetris.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
+
+            JTextArea holdText = new JTextArea();
+            holdText.setText("Hold ");
+            holdText.setAlignmentX(Component.CENTER_ALIGNMENT);
+            holdText.setAlignmentY(Component.BOTTOM_ALIGNMENT);
+            holdText.setVisible(true);
+            add(holdText);
+            holdText.setFont(minecraftFont);
+            holdText.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
+
+            add(Box.createRigidArea(new Dimension(0, 375)));
+
+            JTextArea score = new JTextArea();
+            score.setAlignmentX(Component.CENTER_ALIGNMENT);
+            score.setAlignmentY(Component.BOTTOM_ALIGNMENT);
+            score.setText("Score: " + String.valueOf(currentScore));
+            score.setVisible(true);
+            add(score);
+            score.setFont(minecraftFont);
+            score.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
+
         }
 
         private void initHoldBlockBoard() {
@@ -657,7 +697,7 @@ public class Board extends JPanel {
                     int number = holdBlockNumberAt(j, i);
                     if (shape != Tetrominoe.NoShape && number != -1) {
                         drawSquare(g, j * squareWidth(),
-                                i * squareHeight(), shape, number, false);
+                                i * squareHeight(), shape, number, false, null);
                     }
                 }
             }
