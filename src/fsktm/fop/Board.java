@@ -5,6 +5,8 @@ import fsktm.fop.Shape.Tetrominoe;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
@@ -12,9 +14,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.TimerTask;
 
 public class Board extends JPanel {
 
+    /*
+
+    Display the keyboard shortcuts
+    Print text of top 5 players, ikut turutan
+     */
     int width = 10;
     int height = 10;
     int previewWidth = width;
@@ -41,12 +49,17 @@ public class Board extends JPanel {
     private int currentScore = 0;
     private int newScore;
 
-    private Shape tempShape;
-
     private static BufferedImage background;
+    private Tetris parent;
+    private ScoringFileSystem scoringFileSystem;
 
-    Board() {
-        initBoard();
+    private int timerDelay = 1000;
+    private int time = 10;
+    private Timer timer;
+
+    Board(Tetris tetris) {
+        scoringFileSystem = new ScoringFileSystem();
+        parent = tetris;
 
         try {
             minecraftFont = Font.createFont(Font.TRUETYPE_FONT, new File("Minecraft.ttf")).deriveFont(18f);
@@ -59,9 +72,28 @@ public class Board extends JPanel {
             e.printStackTrace();
         }
 
+        timer = new Timer(timerDelay, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (time == 0) {
+                    insert();
+                }
+                time--;
+                holdBlock.setTimerText(time+1);
+            }
+        });
+        timer.start();
+
+        initGame();
+    }
+
+    private void initGame() {
+        initBoard();
+        previewShape.clear();
+        currentScore = 0;
+
         boardPreview = new PreviewBoard();
         holdBlock = new HoldBlock();
-
         addKeyListener(new ShortcutAdapter());
 
         currentX = width / 2 - 1; // start from the middle
@@ -87,6 +119,9 @@ public class Board extends JPanel {
     private void checkForColumnAndRow() {
         boolean[] rowClerared = new boolean[10];
         boolean[] columnCleared = new boolean[10];
+        this.rowCleared = 0;
+        this.columnCleared = 0;
+        newScore = 0;
 
         for (int i = 0; i < 10; i++) {
             rowClerared[i] = false;
@@ -95,14 +130,14 @@ public class Board extends JPanel {
         for (int i = 0; i < width; i++) {
             if (sumEvenForRow(i)) {
                 rowClerared[i] = true;
-                this.rowCleared++;
+                newScore += 100 * (int) Math.pow(2, this.rowCleared++);
                 System.out.println("Row " + (i+1) + " cleared!");
             }
         }
         for (int j = 0; j < height; j++) {
             if (sumEvenForColumn(j)) {
                 columnCleared[j] = true;
-                this.columnCleared++;
+                newScore += 100 * (int) Math.pow(2, this.columnCleared++);
                 System.out.println("Column " + (j+1) + " cleared!");
             }
         }
@@ -115,6 +150,7 @@ public class Board extends JPanel {
                 clearColumn(i);
             }
         }
+        if (this.rowCleared > 0 && this.columnCleared > 0) newScore *= 10;
     }
 
     private boolean canRotate() {
@@ -175,12 +211,12 @@ public class Board extends JPanel {
             // Set position 3 in ArrayList to place hold blocks
             if (!canMove(currentX, currentY, previewShape.get(1))) return;
             previewShape.add(generateRandomShape());
-            putShadowShapeOnBoard(currentX, currentY, currentShape, Tetrominoe.NoShape, -1);
+            putShadowShapeOnBoard(currentX, currentY, currentShape, Tetrominoe.NoShape, -1); //remove
             Collections.swap(previewShape, 0, 3);
             Collections.swap(previewShape, 1, 2);
             Collections.swap(previewShape, 0, 2);
             currentShape = previewShape.get(0);
-            putShadowShapeOnBoard(currentX, currentY, currentShape, currentShape.getShape(), -2);
+            putShadowShapeOnBoard(currentX, currentY, currentShape, currentShape.getShape(), -2); //add
         } else {
             if (!canMove(currentX, currentY, previewShape.get(3))) return;
             putShadowShapeOnBoard(currentX, currentY, currentShape, Tetrominoe.NoShape, -1);
@@ -196,6 +232,7 @@ public class Board extends JPanel {
     }
 
     private void insert() {
+        time = 10;
         if (!isFull) {
             putShapeOnBoard(currentX, currentY, currentShape);
             if (previewShape.size() == 3) {
@@ -209,6 +246,7 @@ public class Board extends JPanel {
             currentShape = previewShape.get(0);
             checkForColumnAndRow();
             updateScore();
+            holdBlock.setScoreText(currentScore);
         }
 
         if (blocksIsAvailable()) {
@@ -219,9 +257,19 @@ public class Board extends JPanel {
             repaint();
         } else {
             isFull = true;
+            gameOver();
             repaint();
             return;
         }
+    }
+
+    private void gameOver() {
+        timer.stop();
+        JOptionPane.showMessageDialog(null, "Game Over!", "Tetris 2.0",
+                JOptionPane.INFORMATION_MESSAGE, parent.getImageIcon());
+        scoringFileSystem.addNewScore(parent.getName(), currentScore);
+        scoringFileSystem.write();
+        System.exit(0); // bye
     }
 
     private void updateScore() {
@@ -349,7 +397,7 @@ public class Board extends JPanel {
             int oldX = currentX + shape.x(i);
             int oldY = currentY + shape.y(i);
             setShapeAt(oldX, oldY, Tetrominoe.NoShape);
-            setNumberAt(oldX, oldY, -2);
+            setNumberAt(oldX, oldY, -1);
         }
         for (int i = 0; i < 4; i++) {
             int x = newX + shape.x(i);
@@ -373,12 +421,11 @@ public class Board extends JPanel {
         if (c != null) color = c;
 
         g.setColor(color);
-
         g.fillRect(x + 1, y + 1, squareWidth() - 2, squareHeight() - 2);
 
         g.setColor(color.brighter());
-        g.drawLine(x, y + squareHeight() - 1, x, y);
-        g.drawLine(x, y, x + squareWidth() - 1, y);
+        g.drawLine(x, y + squareHeight() - 1, x, y); //vertical line
+        g.drawLine(x, y, x + squareWidth() - 1, y); //horizontal
 
         g.setColor(color.darker());
         g.drawLine(x + 1, y + squareHeight() - 1,
@@ -503,12 +550,6 @@ public class Board extends JPanel {
                 case KeyEvent.VK_I:
                     insert();
                     break;
-                case KeyEvent.VK_E:
-                    break;
-                case KeyEvent.VK_C:
-                    initBoard();
-                    repaint();
-                    break;
             }
         }
     }
@@ -604,6 +645,10 @@ public class Board extends JPanel {
     }
 
     class HoldBlock extends JPanel {
+
+        JTextArea score;
+        JTextArea timerText;
+
         HoldBlock() {
             super();
             initHoldBlockBoard();
@@ -614,6 +659,7 @@ public class Board extends JPanel {
             tetris.setAlignmentX(Component.CENTER_ALIGNMENT);
             tetris.setAlignmentY(Component.TOP_ALIGNMENT);
             tetris.setText("TETRIS 2.0");
+            tetris.setFocusable(false);
             tetris.setVisible(true);
             add(tetris);
             Font minecraftFontBigger = minecraftFont.deriveFont(24f);
@@ -622,6 +668,7 @@ public class Board extends JPanel {
 
             JTextArea holdText = new JTextArea();
             holdText.setText("Hold ");
+            holdText.setFocusable(false);
             holdText.setAlignmentX(Component.CENTER_ALIGNMENT);
             holdText.setAlignmentY(Component.BOTTOM_ALIGNMENT);
             holdText.setVisible(true);
@@ -629,12 +676,23 @@ public class Board extends JPanel {
             holdText.setFont(minecraftFont);
             holdText.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
 
-            add(Box.createRigidArea(new Dimension(0, 375)));
+            add(Box.createRigidArea(new Dimension(0, 300)));
 
-            JTextArea score = new JTextArea();
+            timerText = new JTextArea();
+            timerText.setAlignmentX(Component.CENTER_ALIGNMENT);
+            timerText.setAlignmentY(Component.BOTTOM_ALIGNMENT);
+            timerText.setText(String.valueOf(time));
+            timerText.setFocusable(false);
+            timerText.setVisible(true);
+            add(timerText);
+            timerText.setFont(minecraftFontBigger);
+            timerText.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
+
+            score = new JTextArea();
             score.setAlignmentX(Component.CENTER_ALIGNMENT);
             score.setAlignmentY(Component.BOTTOM_ALIGNMENT);
             score.setText("Score: " + String.valueOf(currentScore));
+            score.setFocusable(false);
             score.setVisible(true);
             add(score);
             score.setFont(minecraftFont);
@@ -684,6 +742,14 @@ public class Board extends JPanel {
                 setHoldBlockAt(x, y, shape.getShape());
                 setHoldBlockNumberAt(x, y, shape.getNumberAt(i));
             }
+        }
+
+        public void setScoreText(int value) {
+            score.setText("Score: " + String.valueOf(value));
+        }
+
+        public void setTimerText(int value) {
+            timerText.setText(String.valueOf(value));
         }
 
         @Override

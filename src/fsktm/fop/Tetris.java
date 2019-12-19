@@ -8,6 +8,8 @@ public class Tetris extends JFrame {
     private Board.PreviewBoard previewBoard;
     private Board.HoldBlock holdBlock;
     private Board board;
+    private String name;
+    private ImageIcon imageIcon;
 
     Tetris() {
         int width = 700, height = 1000;
@@ -18,7 +20,7 @@ public class Tetris extends JFrame {
         JPanel leftside = new JPanel();
         leftside.setLayout(new BoxLayout(leftside, BoxLayout.Y_AXIS));
 
-        board = new Board();
+        board = new Board(this);
         board.setPreferredSize(new Dimension(width, height * 15 / 22));
 
         Border horizontalBorder = new Border(10, 1, board.squareWidth(), board.squareHeight());
@@ -49,11 +51,26 @@ public class Tetris extends JFrame {
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        if(board.gameIsOver()) {
-            System.out.println("woi");
-            setTitle("Game Over!");
+        imageIcon = new ImageIcon(
+                new ImageIcon("game-icon.png").getImage().getScaledInstance(75, 75, Image.SCALE_DEFAULT)
+        );
+        name = (String) JOptionPane.showInputDialog(this, "Enter your name", "Tetris 2.0",
+                JOptionPane.PLAIN_MESSAGE, imageIcon, null, "");
+
+        if (name == null || name.equals("")){
+            JOptionPane.showMessageDialog(this, "pLEaSe enTeR yoUR naMe", "Tetris 2.0",
+                    JOptionPane.PLAIN_MESSAGE, imageIcon);
+            System.exit(0);
         }
+        setIconImage(imageIcon.getImage());
+
+    }
+    public String getName() {
+        return name;
     }
 
+    public ImageIcon getImageIcon() {
+        return imageIcon;
+    }
 
 }

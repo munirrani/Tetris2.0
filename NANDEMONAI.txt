@@ -1,0 +1,5 @@
+Aina,1100
+Imran,900
+Afa2,200
+iqa,200
+Munir,100
